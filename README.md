@@ -49,6 +49,16 @@ Repo ini berada di tahap **proof-of-concept / validasi kelayakan pipeline**, buk
 - **Target deployment:** ESP32-S3 (dual-core Xtensa LX7 @ 240 MHz), sensor arus ACS712, monitoring remote via Thinger.io
 
 ---
+## 📊 Visualisasi (Dataset Toy)
+
+**Validasi bentuk sinyal per kelas:**
+![Dataset Validation](figures/dataset_validation.png)
+
+**Confusion matrix hasil training pada dataset sintetis:**
+![Confusion Matrix](figures/confusion_matrix.png)
+
+> ⚠️ Akurasi 100% di atas adalah hasil pada dataset sintetis/toy, bukan indikator performa deteksi fault dunia nyata. Lihat bagian [Status Proyek](#️-status-proyek--baca-sebelum-menilai-angka-apapun-di-repo-ini).
+---
 
 ## 📁 Struktur Repo
 
