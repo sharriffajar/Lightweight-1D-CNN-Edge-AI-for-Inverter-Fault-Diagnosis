@@ -95,7 +95,7 @@ Model hasil (`model_int8.tflite`) siap dikonversi ke C array (`xxd -i`) untuk di
 
 ## 📄 Terkait
 
-Repo ini menyertai Karya Tulis Ilmiah *"Demokratisasi AIoT untuk Keandalan Energi Terbarukan: Sistem Deteksi Kerusakan Inverter Berbasis CNN Ringan dan ESP32-S3"* — Kompetisi Karya Tulis Ilmiah Spesial Kemerdekaan (Danantara Indonesia x PT Borneo Alumina Indonesia), Agustus 2026.
+Repo ini menyertai Karya Tulis Ilmiah *"Demokratisasi AIoT untuk Keandalan Energi Terbarukan: Sistem Deteksi Kerusakan Inverter Berbasis CNN Ringan dan ESP32-S3"* — Kompetisi Karya Tulis Ilmiah Spesial Kemerdekaan PT Borneo Alumina Indonesia, Agustus 2026.
 
 ## 👤 Penulis
 
