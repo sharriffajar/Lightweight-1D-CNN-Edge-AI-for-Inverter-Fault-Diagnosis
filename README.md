@@ -1,8 +1,13 @@
+<p align="center">
+  <a href="README.md">🇬🇧 English</a> | 
+  <a href="README.id.md">🇮🇩 Bahasa Indonesia</a>
+</p>
+
 # ⚡ Lightweight CNN Fault Detector — ESP32-S3
 
-**Deteksi Open-Circuit Fault pada Inverter Single-Phase menggunakan CNN 1D Ringan + TinyML**
+**Open-Circuit Fault Detection for Single-Phase Inverters using a Lightweight 1D CNN + TinyML**
 
-> Bagian dari riset skripsi & Karya Tulis Ilmiah *"Demokratisasi AIoT untuk Keandalan Energi Terbarukan"* — Program Studi Teknik Elektro, Universitas Tanjungpura, Pontianak.
+> Part of a undergraduate thesis and scientific paper *"Democratizing AIoT for Renewable Energy Reliability"* — Electrical Engineering Department, Universitas Tanjungpura, Pontianak, Indonesia.
 
 [![Status](https://img.shields.io/badge/status-proof--of--concept-yellow)]()
 [![Platform](https://img.shields.io/badge/platform-ESP32--S3-blue)]()
@@ -11,62 +16,52 @@
 
 ---
 
-## 🎯 Ringkasan
+## 🎯 Overview
 
-Repo ini berisi pipeline machine learning untuk mendeteksi kerusakan **open-circuit fault (OCF)** pada inverter full-bridge satu-fasa, dirancang agar bisa berjalan langsung di mikrokontroler **ESP32-S3** (edge inference, tanpa bergantung cloud/GPU).
+This repo contains a machine learning pipeline to detect **open-circuit fault (OCF)** conditions in a single-phase full-bridge inverter, designed to run directly on an **ESP32-S3** microcontroller (edge inference, no cloud/GPU dependency).
 
-Pipeline mencakup:
+Pipeline:
 
 ```
-Generate/Akuisisi Sinyal → Preprocessing → CNN 1D Training → Quantization INT8 → TFLite Micro → Deploy ke ESP32-S3
+Generate/Acquire Signal → Preprocessing → 1D CNN Training → INT8 Quantization → TFLite Micro → Deploy to ESP32-S3
 ```
 
-Target akhir: model < 200 KB, RAM < 100 KB, latensi inferensi < 500 ms, cocok untuk sistem PLTS residensial/UMKM yang tidak sanggup beli solusi monitoring komersial (Rp5–15 juta/unit).
+Target specs: model < 200 KB, RAM < 100 KB, inference latency < 500 ms — aimed at residential/small-business solar PV systems that can't afford commercial monitoring solutions (USD 300-1000+ per unit).
 
 ---
 
-## ⚠️ Status Proyek — Baca Sebelum Menilai Angka Apapun di Repo Ini
+## ⚠️ Project Status — Please Read Before Judging Any Numbers in This Repo
 
-Repo ini berada di tahap **proof-of-concept / validasi kelayakan pipeline**, bukan sistem yang sudah divalidasi terhadap fault inverter nyata. Mohon perhatikan poin berikut:
+This repo is at the **proof-of-concept / pipeline feasibility** stage, not a system validated against real inverter faults. Please note:
 
-| Komponen | Status | Catatan |
+| Component | Status | Note |
 |---|---|---|
-| Pipeline (generate → train → quantize → export) | ✅ Tervalidasi end-to-end | Berhasil dijalankan penuh, model ter-quantize siap format ESP32 |
-| Dataset saat ini | 🧪 **Sintetis/toy** | Sinyal dibuat manual (scaling & phase-shift per kelas) untuk menguji pipeline, **bukan** hasil simulasi rangkaian fisik atau akuisisi hardware |
-| Angka akurasi pada dataset toy | 🚫 Tidak representatif | Karena tiap kelas dibuat berbeda bentuk secara geometris, model mana pun cenderung mudah memisahkannya — angka ini **tidak mencerminkan** performa deteksi fault dunia nyata dan sengaja tidak dipublikasikan sebagai klaim hasil |
-| Dataset fisik (Simulink / hardware lab) | 🔜 Rencana lanjutan | Lihat [Roadmap](#-roadmap) |
+| Pipeline (generate → train → quantize → export) | ✅ Validated end-to-end | Runs fully, produces a quantized model in ESP32-ready format |
+| Current dataset | 🧪 **Synthetic/toy** | Signals are hand-crafted (per-class amplitude scaling + phase shift) to test the pipeline — **not** the output of a physical circuit simulation or hardware acquisition |
+| Accuracy on the toy dataset | 🚫 Not representative | Because each class is geometrically distinct by construction, almost any model separates them easily — this number **does not reflect** real-world fault-detection performance and is intentionally not presented as a result claim |
+| Physical dataset (Simulink / lab hardware) | 🔜 Planned next step | See [Roadmap](#️-roadmap) |
 
-**Singkatnya:** yang sudah terbukti adalah *arsitektur & pipeline-nya jalan dan bisa di-deploy*. Yang belum terbukti adalah *kemampuan deteksi fault pada kondisi nyata* — itu baru akan diklaim setelah dataset fisik tersedia.
+**In short:** what's proven so far is that *the architecture and pipeline work and are deployable*. What's *not yet* proven is *real-world fault detection capability* — that claim will only be made once a physical dataset is available.
+
+---
+
+## 🏗️ Architecture
+
+- **Model:** Lightweight 1D CNN (Conv1D → MaxPool → Conv1D → MaxPool → Conv1D → GAP → Dense → Softmax)
+- **Input:** current signal window, 128 samples (≈128 ms @ 1 kHz sampling)
+- **Output:** 6 classes — `Healthy`, `S1_Open`, `S2_Open`, `S3_Open`, `S4_Open`, `Multi_Fault`
+- **Optimization:** post-training INT8 quantization via representative dataset, target model size < 200 KB
+- **Target deployment:** ESP32-S3 (dual-core Xtensa LX7 @ 240 MHz), ACS712 current sensor, remote monitoring via Thinger.io
 
 ---
 
-## 🏗️ Arsitektur
-
-- **Model:** CNN 1D ringan (Conv1D → MaxPool → Conv1D → MaxPool → Conv1D → GAP → Dense → Softmax)
-- **Input:** window sinyal arus, 128 sampel (setara 128 ms @ 1 kHz sampling)
-- **Output:** 6 kelas — `Healthy`, `S1_Open`, `S2_Open`, `S3_Open`, `S4_Open`, `Multi_Fault`
-- **Optimasi:** post-training quantization INT8 via representative dataset, target ukuran model < 200 KB
-- **Target deployment:** ESP32-S3 (dual-core Xtensa LX7 @ 240 MHz), sensor arus ACS712, monitoring remote via Thinger.io
-
----
-## 📊 Visualisasi (Dataset Toy)
-
-**Validasi bentuk sinyal per kelas:**
-![Dataset Validation](figures/dataset_validation.png)
-
-**Confusion matrix hasil training pada dataset sintetis:**
-![Confusion Matrix](figures/confusion_matrix.png)
-
-> ⚠️ Akurasi 100% di atas adalah hasil pada dataset sintetis/toy, bukan indikator performa deteksi fault dunia nyata. Lihat bagian [Status Proyek](#️-status-proyek--baca-sebelum-menilai-angka-apapun-di-repo-ini).
----
-
-## 📁 Struktur Repo
+## 📁 Repo Structure
 
 ```
 .
-├── generate_dataset.py      # Generator sinyal sintetis (toy dataset, lihat disclaimer)
-├── train_model.ipynb        # Training CNN 1D + evaluasi
-├── quantize_export.py       # Konversi ke TFLite Micro INT8
+├── generate_dataset.py      # Synthetic signal generator (toy dataset, see disclaimer)
+├── train_model.py           # 1D CNN training + evaluation
+├── quantize_export.py       # Convert to TFLite Micro INT8
 ├── dataset_output/
 │   ├── X_data.npy
 │   ├── y_data.npy
@@ -78,26 +73,45 @@ Repo ini berada di tahap **proof-of-concept / validasi kelayakan pipeline**, buk
 ```
 
 ---
-## 🗺️ Roadmap
 
-- [x] Pipeline generate → train → quantize → export (proof-of-concept)
-- [ ] Simulasi inverter H-bridge berbasis fisika (MATLAB/Simulink) untuk dataset yang lebih representatif
-- [ ] Akuisisi data lab: inverter full-bridge 500VA + ACS712 + injeksi OCF fisik pada IGBT
-- [ ] Evaluasi ulang akurasi & F1-score pada dataset fisik/lab
-- [ ] Deployment & pengujian real-time di ESP32-S3
-- [ ] Integrasi Thinger.io untuk monitoring remote + failover offline
+## 📊 Visualizations (Toy Dataset)
+
+**Per-class signal shape validation:**
+![Dataset Validation](figures/dataset_validation.png)
+
+**Confusion matrix from training on the synthetic dataset:**
+![Confusion Matrix](figures/confusion_matrix.png)
+
+> ⚠️ The 100% accuracy above is measured on the synthetic/toy dataset, not an indicator of real-world fault-detection performance. See [Project Status](#️-project-status--please-read-before-judging-any-numbers-in-this-repo).
 
 ---
 
-## 📄 Terkait
+## 🗺️ Roadmap
 
-Repo ini menyertai Karya Tulis Ilmiah *"Demokratisasi AIoT untuk Keandalan Energi Terbarukan: Sistem Deteksi Kerusakan Inverter Berbasis CNN Ringan dan ESP32-S3"* — Kompetisi Karya Tulis Ilmiah Spesial Kemerdekaan PT Borneo Alumina Indonesia, Agustus 2026.
+- [x] Generate → train → quantize → export pipeline (proof-of-concept)
+- [ ] Physics-based H-bridge inverter simulation (MATLAB/Simulink) for a more representative dataset
+- [ ] Lab data acquisition: 500VA full-bridge inverter + ACS712 + physical OCF injection on IGBTs
+- [ ] Re-evaluate accuracy & F1-score on the physical/lab dataset
+- [ ] Real-time deployment & testing on ESP32-S3
+- [ ] Thinger.io integration for remote monitoring + offline failover
 
-## 👤 Penulis
+---
+
+## 🤝 Feedback Welcome
+
+This is a student research project and I'd genuinely appreciate input from anyone with power-electronics, embedded ML, or TinyML experience — especially on the physical fault modeling step (see Roadmap). Feel free to open an issue or start a discussion.
+
+---
+
+## 📄 Related
+
+This repo accompanies the scientific paper *"Democratizing AIoT for Renewable Energy Reliability: A Lightweight CNN and ESP32-S3-Based Inverter Fault Detection System"* — Independence Day Special Scientific Writing Competition (PT Borneo Alumina Indonesia), August 2026.
+
+## 👤 Author
 
 **Sharrif Faqih Fajarudin**
-NIM D1021221062 — Program Studi Teknik Elektro, Fakultas Teknik, Universitas Tanjungpura, Pontianak
+Student ID D1021221062 — Electrical Engineering, Faculty of Engineering, Universitas Tanjungpura, Pontianak, Indonesia
 
-## 📜 Lisensi
+## 📜 License
 
-MIT — bebas digunakan/dimodifikasi dengan atribusi.
+MIT — free to use/modify with attribution.
