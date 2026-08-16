@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="README.id.md">🇮🇩 Bahasa Indonesia</a> | 
-  <a href="README.md">🇬🇧 English</a>
+  <a href="README.md">🇬🇧 English</a> | 
+  <a href="README.id.md">🇮🇩 Bahasa Indonesia</a>
 </p>
 
 # ⚡ Lightweight CNN Fault Detector — ESP32-S3
