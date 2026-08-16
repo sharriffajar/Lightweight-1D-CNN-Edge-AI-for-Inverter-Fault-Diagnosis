@@ -68,20 +68,6 @@ Repo ini berada di tahap **proof-of-concept / validasi kelayakan pipeline**, buk
 ```
 
 ---
-
-## 🚀 Cara Menjalankan
-
-```bash
-pip install -r requirements.txt
-python generate_dataset.py        # buat dataset sintetis (toy)
-jupyter notebook train_model.ipynb  # training + evaluasi
-python quantize_export.py         # export model_int8.tflite
-```
-
-Model hasil (`model_int8.tflite`) siap dikonversi ke C array (`xxd -i`) untuk di-embed ke firmware ESP32 via Arduino IDE / ESP-IDF.
-
----
-
 ## 🗺️ Roadmap
 
 - [x] Pipeline generate → train → quantize → export (proof-of-concept)
